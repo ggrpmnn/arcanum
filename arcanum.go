@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"strconv"
-	//"html/template"
 	"encoding/json"
+	"fmt"
+	//"html/template"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,11 @@ type SpellComponents struct {
 	MaterialString []string `json:"materials_needed,omitempty"`
 }
 
-var arcDB []Spell
+// A list of spell IDs, in ascending order
+var arcID []int
+
+// A list of spell structs, in random order
+var arcDB map[int]Spell
 
 ///////////////////////////////////////////////////////////////////////////////
 // Handler functions
@@ -50,26 +54,28 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintln(w, "Welcome to Arcanum! Spells go here!")
-	for i := range arcDB {
-		fmt.Fprintln(w, arcDB[i].Name)
+	for _, id := range arcID {
+		fmt.Fprintln(w, arcDB[id].Name)
 	}
 }
 
-func spellHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Path[len("/spells/"):]
-	if u_id == "" {
+func spellsHandler(w http.ResponseWriter, r *http.Request) {
+	idS := r.URL.Path[len("/spells/"):]
+	idN, e := strconv.Atoi(idS)
+	if idS == "" {
+		// no ID passed
 		fmt.Fprintln(w, "No id passed")
+	} else if e != nil {
+		// non-numeric ID passed
+		fmt.Fprintln(w, "Non-numeric ID passed: ERROR")
 	} else {
-		for i, s := range arcDB {
-			id, err := strconv.Atoi(id)
-			if err != nil {
-
-			}
-			if s.ID == id {
-				fmt.Fprintln(w, "ID is "+string(id))
-			}
+		// numeric ID passed; check if in DB
+		if s, p := arcDB[idN]; p == false {
+			fmt.Fprintln(w, "ID doesn't exist in DB!")
+		} else {
+			fmt.Fprintf(w, "ID is %s\n", idS)
+			fmt.Fprintln(w, s.Name)
 		}
-		fmt.Fprintln(w, "ID doesn't exist in DB!")
 	}
 }
 
@@ -77,11 +83,12 @@ func spellHandler(w http.ResponseWriter, r *http.Request) {
 // Server core functions
 ///////////////////////////////////////////////////////////////////////////////
 func init() {
-	arcDB = make([]Spell, 0)
+	arcID = make([]int, 0)
+	arcDB = make(map[int]Spell)
 
 	// The spell JSON files should be in the same dir as the executable
-	//spellFiles := []string{"phb_spells.json", "eepc_spells.json", "scag_spells.json"}
-	spellFiles := []string{"test_spells.json"}
+	//spellFiles := []string{"./data/phb_spells.json", "./data/eepc_spells.json", "./data/scag_spells.json"}
+	spellFiles := []string{"./data/test_spells.json"}
 	for _, f := range spellFiles {
 		j, err := ioutil.ReadFile(f)
 		checkError(err)
@@ -90,14 +97,15 @@ func init() {
 		checkError(err)
 		// Copy the new list into the DB list
 		for i := 0; i < len(sl); i++ {
-			arcDB = append(arcDB, sl[i])
+			arcID = append(arcID, sl[i].ID)
+			arcDB[sl[i].ID] = sl[i]
 		}
 	}
 }
 
 func main() {
 	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/spells/", spellHandler)
+	http.HandleFunc("/spells/", spellsHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
