@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	//"html/template"
 	"encoding/json"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 // Types
 ///////////////////////////////////////////////////////////////////////////////
 type Spell struct {
+	ID           int             `json:"id"`
 	Name         string          `json:"name"`
 	Tags         []string        `json:"tags"`
 	Type         string          `json:"type"`
@@ -35,6 +37,13 @@ var arcDB []Spell
 ///////////////////////////////////////////////////////////////////////////////
 // Handler functions
 ///////////////////////////////////////////////////////////////////////////////
+func errorHandler(w http.ResponseWriter, r *http.Request, s int) {
+	w.WriteHeader(s)
+	if s == http.StatusNotFound {
+		fmt.Fprintf(w, "Sorry - the page '%s' has been lost to the Weave!", r.URL)
+	}
+}
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		errorHandler(w, r, http.StatusNotFound)
@@ -46,10 +55,21 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func errorHandler(w http.ResponseWriter, r *http.Request, s int) {
-	w.WriteHeader(s)
-	if s == http.StatusNotFound {
-		fmt.Fprintf(w, "Sorry - the page '%s' has been lost to the Weave!", r.URL)
+func spellHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/spells/"):]
+	if u_id == "" {
+		fmt.Fprintln(w, "No id passed")
+	} else {
+		for i, s := range arcDB {
+			id, err := strconv.Atoi(id)
+			if err != nil {
+
+			}
+			if s.ID == id {
+				fmt.Fprintln(w, "ID is "+string(id))
+			}
+		}
+		fmt.Fprintln(w, "ID doesn't exist in DB!")
 	}
 }
 
@@ -77,6 +97,7 @@ func init() {
 
 func main() {
 	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/spells/", spellHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
