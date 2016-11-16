@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/alecthomas/template"
 	//"html/template"
 	"io/ioutil"
 	"net/http"
@@ -53,14 +55,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		errorHandler(w, r, http.StatusNotFound)
 		return
 	}
-	fmt.Fprintln(w, "Welcome to Arcanum! Spells go here!")
+	t, _ := template.ParseFiles("html/spell_list.html")
 	for _, id := range arcID {
-		fmt.Fprintln(w, arcDB[id].Name)
+		//fmt.Fprintln(w, arcDB[id].Name)
+		t.Execute(w, arcDB[id])
 	}
 }
 
-func spellsHandler(w http.ResponseWriter, r *http.Request) {
-	idS := r.URL.Path[len("/spells/"):]
+func spellHandler(w http.ResponseWriter, r *http.Request) {
+	idS := r.URL.Path[len("/spell/"):]
 	idN, e := strconv.Atoi(idS)
 	if idS == "" {
 		// no ID passed
@@ -73,8 +76,8 @@ func spellsHandler(w http.ResponseWriter, r *http.Request) {
 		if s, p := arcDB[idN]; p == false {
 			fmt.Fprintln(w, "ID doesn't exist in DB!")
 		} else {
-			fmt.Fprintf(w, "ID is %s\n", idS)
-			fmt.Fprintln(w, s.Name)
+			t, _ := template.ParseFiles("html/spell.html")
+			t.Execute(w, s)
 		}
 	}
 }
@@ -87,8 +90,7 @@ func init() {
 	arcDB = make(map[int]Spell)
 
 	// The spell JSON files should be in the same dir as the executable
-	//spellFiles := []string{"./data/phb_spells.json", "./data/eepc_spells.json", "./data/scag_spells.json"}
-	spellFiles := []string{"./data/test_spells.json"}
+	spellFiles := []string{"./data/phb_spells.json", "./data/eepc_spells.json", "./data/scag_spells.json"}
 	for _, f := range spellFiles {
 		j, err := ioutil.ReadFile(f)
 		checkError(err)
@@ -105,7 +107,7 @@ func init() {
 
 func main() {
 	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/spells/", spellsHandler)
+	http.HandleFunc("/spell/", spellHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
