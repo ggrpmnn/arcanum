@@ -57,7 +57,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t, _ := template.ParseFiles("html/spell_list.html")
 	for _, id := range arcID {
-		//fmt.Fprintln(w, arcDB[id].Name)
 		t.Execute(w, arcDB[id])
 	}
 }
