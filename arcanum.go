@@ -3,9 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/alecthomas/template"
-	//"html/template"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"strconv"
