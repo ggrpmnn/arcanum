@@ -40,9 +40,10 @@ type SpellComponents struct {
 }
 
 // used for listing names-only
-type SpellList struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+type SpellEntry struct {
+	Name string   `json:"name"`
+	URL  string   `json:"url"`
+	Tags []string `json:"tags"`
 }
 
 // A list of spell IDs, in ascending order
@@ -55,12 +56,12 @@ var arcDB map[int]Spell
 // Handler functions
 ///////////////////////////////////////////////////////////////////////////////
 func apiList(w http.ResponseWriter, r *http.Request) {
-	l := make([]SpellList, 0)
+	l := make([]SpellEntry, 0)
 	for i := 0; i < len(arcID); i++ {
 		n := arcDB[arcID[i]].Name
-		// TODO: find out how to get the server path
-		u := "BASE" + SPELL_API_PATH + strconv.Itoa(arcID[i])
-		s := SpellList{Name: n, URL: u}
+		u := "http://" + r.Host + SPELL_API_PATH + strconv.Itoa(arcID[i])
+		t := arcDB[arcID[i]].Tags
+		s := SpellEntry{Name: n, URL: u, Tags: t}
 		l = append(l, s)
 	}
 	json.NewEncoder(w).Encode(l)
