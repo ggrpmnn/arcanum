@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,6 +34,11 @@ type SpellComponents struct {
 	MaterialString []string `json:"materials_needed,omitempty"`
 }
 
+// used for listing names-only
+type SpellName struct {
+	Name string `json:"name"`
+}
+
 // A list of spell IDs, in ascending order
 var arcID []int
 
@@ -41,33 +48,38 @@ var arcDB map[int]Spell
 ///////////////////////////////////////////////////////////////////////////////
 // Handler functions
 ///////////////////////////////////////////////////////////////////////////////
-func errorHandler(w http.ResponseWriter, r *http.Request, s int) {
-	w.WriteHeader(s)
-	if s == http.StatusNotFound {
-		fmt.Fprintf(w, "Sorry - the page '%s' has been lost to the Weave!", r.URL)
+func apiList(w http.ResponseWriter, r *http.Request) {
+	l := make([]SpellName, 0)
+	for i := 0; i < len(arcID); i++ {
+		n := SpellName{Name: arcDB[arcID[i]].Name}
+		l = append(l, n)
+	}
+	json.NewEncoder(w).Encode(l)
+}
+
+func apiSpell(w http.ResponseWriter, r *http.Request) {
+	idS := mux.Vars(r)["spellID"]
+	idN, e := strconv.Atoi(idS)
+	if e != nil {
+		fmt.Fprintln(w, "NOPE")
+	} else {
+		s := arcDB[idN]
+		json.NewEncoder(w).Encode(s)
 	}
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		errorHandler(w, r, http.StatusNotFound)
-		return
-	}
+func index(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("html/spell_list.html")
 	for _, id := range arcID {
 		t.Execute(w, arcDB[id])
 	}
 }
 
-func spellHandler(w http.ResponseWriter, r *http.Request) {
-	idS := r.URL.Path[len("/spell/"):]
+func spellDisplay(w http.ResponseWriter, r *http.Request) {
+	idS := mux.Vars(r)["spellID"]
 	idN, e := strconv.Atoi(idS)
-	if idS == "" {
-		// no ID passed
-		fmt.Fprintln(w, "No id passed")
-	} else if e != nil {
-		// non-numeric ID passed
-		fmt.Fprintln(w, "Non-numeric ID passed: ERROR")
+	if e != nil {
+		// non-numeric ID passed; invoke 404
 	} else {
 		// numeric ID passed; check if in DB
 		if s, p := arcDB[idN]; p == false {
@@ -103,9 +115,14 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/spell/", spellHandler)
-	http.ListenAndServe(":8080", nil)
+	router := mux.NewRouter().StrictSlash(true)
+
+	router.HandleFunc("/", index)
+	router.HandleFunc("/spell/{spellID}", spellDisplay)
+	router.HandleFunc("/api/list", apiList)
+	router.HandleFunc("/api/spell/{spellID}", apiSpell)
+
+	http.ListenAndServe(":8080", router)
 }
 
 // if the error provided is not nil, panic
