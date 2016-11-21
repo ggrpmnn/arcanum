@@ -11,6 +11,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	LIST_API_PATH  string = "/api/list/"
+	SPELL_API_PATH string = "/api/spell/"
+)
+
 ///////////////////////////////////////////////////////////////////////////////
 // Types
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,8 +40,9 @@ type SpellComponents struct {
 }
 
 // used for listing names-only
-type SpellName struct {
+type SpellList struct {
 	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 // A list of spell IDs, in ascending order
@@ -49,10 +55,13 @@ var arcDB map[int]Spell
 // Handler functions
 ///////////////////////////////////////////////////////////////////////////////
 func apiList(w http.ResponseWriter, r *http.Request) {
-	l := make([]SpellName, 0)
+	l := make([]SpellList, 0)
 	for i := 0; i < len(arcID); i++ {
-		n := SpellName{Name: arcDB[arcID[i]].Name}
-		l = append(l, n)
+		n := arcDB[arcID[i]].Name
+		// TODO: find out how to get the server path
+		u := "BASE" + SPELL_API_PATH + strconv.Itoa(arcID[i])
+		s := SpellList{Name: n, URL: u}
+		l = append(l, s)
 	}
 	json.NewEncoder(w).Encode(l)
 }
@@ -118,9 +127,9 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/", index)
-	router.HandleFunc("/spell/{spellID}", spellDisplay)
-	router.HandleFunc("/api/list", apiList)
-	router.HandleFunc("/api/spell/{spellID}", apiSpell)
+	router.HandleFunc(LIST_API_PATH, apiList)
+	router.HandleFunc(SPELL_API_PATH+"{spellID:[0-9]+}", apiSpell)
+	router.HandleFunc("/spell/{spellID:[0-9]+}", spellDisplay)
 
 	http.ListenAndServe(":8080", router)
 }
