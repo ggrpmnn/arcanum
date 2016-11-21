@@ -2,11 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"html/template"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -16,94 +13,12 @@ const (
 	SPELL_API_PATH string = "/api/spell/"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// Types
-///////////////////////////////////////////////////////////////////////////////
-type Spell struct {
-	ID           int             `json:"id"`
-	Name         string          `json:"name"`
-	Tags         []string        `json:"tags"`
-	Type         string          `json:"type"`
-	Time         string          `json:"casting_time"`
-	Range        string          `json:"range"`
-	Components   SpellComponents `json:"components"`
-	Duration     string          `json:"duration"`
-	Description  string          `json:"description"`
-	HigherLevels string          `json:"higher_levels,omitempty"`
-}
-
-type SpellComponents struct {
-	Verbal         bool     `json:"verbal"`
-	Somatic        bool     `json:"somatic"`
-	Material       bool     `json:"material"`
-	MaterialString []string `json:"materials_needed,omitempty"`
-}
-
-// used for listing names-only
-type SpellEntry struct {
-	Name string   `json:"name"`
-	URL  string   `json:"url"`
-	Tags []string `json:"tags"`
-}
-
 // A list of spell IDs, in ascending order
 var arcID []int
 
 // A list of spell structs, in random order
 var arcDB map[int]Spell
 
-///////////////////////////////////////////////////////////////////////////////
-// Handler functions
-///////////////////////////////////////////////////////////////////////////////
-func apiList(w http.ResponseWriter, r *http.Request) {
-	l := make([]SpellEntry, 0)
-	for i := 0; i < len(arcID); i++ {
-		n := arcDB[arcID[i]].Name
-		u := "http://" + r.Host + SPELL_API_PATH + strconv.Itoa(arcID[i])
-		t := arcDB[arcID[i]].Tags
-		s := SpellEntry{Name: n, URL: u, Tags: t}
-		l = append(l, s)
-	}
-	json.NewEncoder(w).Encode(l)
-}
-
-func apiSpell(w http.ResponseWriter, r *http.Request) {
-	idS := mux.Vars(r)["spellID"]
-	idN, e := strconv.Atoi(idS)
-	if e != nil {
-		fmt.Fprintln(w, "NOPE")
-	} else {
-		s := arcDB[idN]
-		json.NewEncoder(w).Encode(s)
-	}
-}
-
-func index(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("html/spell_list.html")
-	for _, id := range arcID {
-		t.Execute(w, arcDB[id])
-	}
-}
-
-func spellDisplay(w http.ResponseWriter, r *http.Request) {
-	idS := mux.Vars(r)["spellID"]
-	idN, e := strconv.Atoi(idS)
-	if e != nil {
-		// non-numeric ID passed; invoke 404
-	} else {
-		// numeric ID passed; check if in DB
-		if s, p := arcDB[idN]; p == false {
-			fmt.Fprintln(w, "ID doesn't exist in DB!")
-		} else {
-			t, _ := template.ParseFiles("html/spell.html")
-			t.Execute(w, s)
-		}
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Server core functions
-///////////////////////////////////////////////////////////////////////////////
 func init() {
 	arcID = make([]int, 0)
 	arcDB = make(map[int]Spell)
@@ -127,10 +42,10 @@ func init() {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/", index)
-	router.HandleFunc(LIST_API_PATH, apiList)
-	router.HandleFunc(SPELL_API_PATH+"{spellID:[0-9]+}", apiSpell)
-	router.HandleFunc("/spell/{spellID:[0-9]+}", spellDisplay)
+	router.HandleFunc("/", Index)
+	router.HandleFunc(LIST_API_PATH, APIList)
+	router.HandleFunc(SPELL_API_PATH+"{spellID:[0-9]+}", APISpell)
+	router.HandleFunc("/spell/{spellID:[0-9]+}", SpellDisplay)
 
 	http.ListenAndServe(":8080", router)
 }
