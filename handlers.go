@@ -19,16 +19,19 @@ func APIList(w http.ResponseWriter, r *http.Request) {
 		s := SpellEntry{Name: n, URL: u, Tags: t}
 		l = append(l, s)
 	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(l)
 }
 
 func APISpell(w http.ResponseWriter, r *http.Request) {
 	idS := mux.Vars(r)["spellID"]
-	idN, e := strconv.Atoi(idS)
-	if e != nil {
-		fmt.Fprintln(w, "NOPE")
+	idN, _ := strconv.Atoi(idS)
+	if s, p := arcDB[idN]; p == false {
+		NotFound(w, r)
 	} else {
-		s := arcDB[idN]
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(s)
 	}
 }
@@ -40,18 +43,19 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func NotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprintln(w, "The requested page does not exist - it has been lost to the Weave!")
+	return
+}
+
 func SpellDisplay(w http.ResponseWriter, r *http.Request) {
 	idS := mux.Vars(r)["spellID"]
-	idN, e := strconv.Atoi(idS)
-	if e != nil {
-		// non-numeric ID passed; invoke 404
+	idN, _ := strconv.Atoi(idS)
+	if s, p := arcDB[idN]; p == false {
+		NotFound(w, r)
 	} else {
-		// numeric ID passed; check if in DB
-		if s, p := arcDB[idN]; p == false {
-			fmt.Fprintln(w, "ID doesn't exist in DB!")
-		} else {
-			t, _ := template.ParseFiles("html/spell.html")
-			t.Execute(w, s)
-		}
+		t, _ := template.ParseFiles("html/spell.html")
+		t.Execute(w, s)
 	}
 }
