@@ -13,17 +13,25 @@ const (
 	SPELL_API_PATH string = "/api/spell/"
 )
 
-// A list of spell IDs, in ascending order
+// a list of spell IDs, in ascending order
 var arcID []int
 
-// A list of spell structs, in random order
+// a list of spell structs, in random order
 var arcDB map[int]Spell
+
+// if the error provided is not nil, panic
+// for use in the init funtion only; don't want a runtime panic
+func checkError(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 func init() {
 	arcID = make([]int, 0)
 	arcDB = make(map[int]Spell)
 
-	// The spell JSON files should be in the same dir as the executable
+	// the paths can be anywhere, but need to be relative to the source dir
 	spellFiles := []string{"./data/phb_spells.json", "./data/eepc_spells.json", "./data/scag_spells.json"}
 	for _, f := range spellFiles {
 		j, err := ioutil.ReadFile(f)
@@ -49,11 +57,4 @@ func main() {
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
 
 	http.ListenAndServe(":8080", router)
-}
-
-// if the error provided is not nil, panic
-func checkError(e error) {
-	if e != nil {
-		panic(e)
-	}
 }
