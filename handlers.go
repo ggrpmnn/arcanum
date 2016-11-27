@@ -26,6 +26,7 @@ func APIList(w http.ResponseWriter, r *http.Request) {
 
 func APISpell(w http.ResponseWriter, r *http.Request) {
 	idS := mux.Vars(r)["spellID"]
+	// router handles non-numeric IDs; no need to error check
 	idN, _ := strconv.Atoi(idS)
 	if s, p := arcDB[idN]; p == false {
 		NotFound(w, r)
@@ -37,10 +38,14 @@ func APISpell(w http.ResponseWriter, r *http.Request) {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("html/spell_list.html")
+	t, _ := template.ParseFiles("html/header.html")
+	t.Execute(w, nil)
+	t, _ = template.ParseFiles("html/spell_list.html")
 	for _, id := range arcID {
 		t.Execute(w, arcDB[id])
 	}
+	t, _ = template.ParseFiles("html/footer.html")
+	t.Execute(w, nil)
 }
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +56,7 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 
 func SpellDisplay(w http.ResponseWriter, r *http.Request) {
 	idS := mux.Vars(r)["spellID"]
+	// router handles non-numeric IDs; no need to error check
 	idN, _ := strconv.Atoi(idS)
 	if s, p := arcDB[idN]; p == false {
 		NotFound(w, r)
