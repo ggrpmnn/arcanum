@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 
@@ -19,6 +20,9 @@ var arcID []int
 // a list of spell structs, in random order
 var arcDB map[int]Spell
 
+// HTML templates for rendering pages
+var templates *template.Template
+
 // if the error provided is not nil, panic
 // for use in the init funtion only; don't want a runtime panic
 func checkError(e error) {
@@ -31,6 +35,7 @@ func init() {
 	arcID = make([]int, 0)
 	arcDB = make(map[int]Spell)
 
+	// Parse source data
 	// the paths can be anywhere, but need to be relative to the source dir
 	spellFiles := []string{"./data/phb_spells.json", "./data/eepc_spells.json", "./data/scag_spells.json"}
 	for _, f := range spellFiles {
@@ -45,6 +50,9 @@ func init() {
 			arcDB[sl[i].ID] = sl[i]
 		}
 	}
+
+	// Parse HTML templates
+	templates = template.Must(template.ParseGlob("html/*"))
 }
 
 func main() {

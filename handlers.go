@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -38,20 +37,16 @@ func APISpell(w http.ResponseWriter, r *http.Request) {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("html/header.html")
-	t.Execute(w, nil)
-	t, _ = template.ParseFiles("html/spell_list.html")
+	templates.ExecuteTemplate(w, "header", nil)
 	for _, id := range arcID {
-		t.Execute(w, arcDB[id])
+		templates.ExecuteTemplate(w, "spell_list", arcDB[id])
 	}
-	t, _ = template.ParseFiles("html/footer.html")
-	t.Execute(w, nil)
+	templates.ExecuteTemplate(w, "footer", nil)
 }
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	fmt.Fprintln(w, "The requested page does not exist - it has been lost to the Weave!")
-	return
 }
 
 func SpellDisplay(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +56,8 @@ func SpellDisplay(w http.ResponseWriter, r *http.Request) {
 	if s, p := arcDB[idN]; p == false {
 		NotFound(w, r)
 	} else {
-		t, _ := template.ParseFiles("html/spell.html")
-		t.Execute(w, s)
+		templates.ExecuteTemplate(w, "header", nil)
+		templates.ExecuteTemplate(w, "spell", s)
+		templates.ExecuteTemplate(w, "footer", nil)
 	}
 }
