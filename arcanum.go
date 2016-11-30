@@ -72,5 +72,5 @@ func main() {
 	router.Handle("/css/{file}", http.FileServer(http.Dir("")))
 
 	log.Printf("> Listening on port 8080.\n")
-	http.ListenAndServe(":8080", router)
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
