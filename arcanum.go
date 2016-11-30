@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -50,9 +51,11 @@ func init() {
 			arcDB[sl[i].ID] = sl[i]
 		}
 	}
+	log.Printf("> Spell data created.\n")
 
 	// Parse HTML templates
 	templates = template.Must(template.ParseGlob("html/*"))
+	log.Printf("> HTML templates parsed.\n")
 }
 
 func main() {
@@ -62,7 +65,12 @@ func main() {
 	router.HandleFunc(LIST_API_PATH, APIList)
 	router.HandleFunc(SPELL_API_PATH+"{spellID:[0-9]+}", APISpell)
 	router.HandleFunc("/spell/{spellID:[0-9]+}", SpellDisplay)
-	router.NotFoundHandler = http.HandlerFunc(NotFound)
+	// disabled to allow for consistent 404 error handling
+	//router.NotFoundHandler = http.HandlerFunc(NotFound)
 
+	// for static files (CSS etc.)
+	router.Handle("/css/{file}", http.FileServer(http.Dir("")))
+
+	log.Printf("> Listening on port 8080.\n")
 	http.ListenAndServe(":8080", router)
 }

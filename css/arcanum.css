@@ -1,0 +1,16 @@
+html {
+    background: #5b84ad;
+}
+
+body {
+    background: white;
+    border-radius: 15px;
+
+    max-width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.content {
+    margin: 5% 10% 5% 0;
+}
