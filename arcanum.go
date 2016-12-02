@@ -65,8 +65,7 @@ func main() {
 	router.HandleFunc(LIST_API_PATH, APIList)
 	router.HandleFunc(SPELL_API_PATH+"{spellID:[0-9]+}", APISpell)
 	router.HandleFunc("/spell/{spellID:[0-9]+}", SpellDisplay)
-	// disabled to allow for consistent 404 error handling
-	//router.NotFoundHandler = http.HandlerFunc(NotFound)
+	router.NotFoundHandler = http.HandlerFunc(NotFound)
 
 	// for static files (CSS etc.)
 	router.Handle("/css/{file}", http.FileServer(http.Dir("")))

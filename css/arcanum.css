@@ -6,11 +6,23 @@ body {
     background: white;
     border-radius: 15px;
 
-    max-width: 75%;
+    max-width: 350px;
+    min-width: 350px;
     margin-left: auto;
     margin-right: auto;
+
+    padding: 20px;
 }
 
-div.content {
-    margin: 5% 10% 5% 0;
+h1, h2, h3, h4, h5, h6 {
+    -webkit-margin-before: 0;
+    /*-webkit-margin-after: 0;*/
+}
+
+p:first-child {
+    margin-top: 0;
+}
+
+p:last-child {
+    margin-bottom: 0;
 }
