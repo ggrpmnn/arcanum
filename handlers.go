@@ -38,9 +38,7 @@ func APISpell(w http.ResponseWriter, r *http.Request) {
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "header", nil)
-	for _, id := range arcID {
-		templates.ExecuteTemplate(w, "spell_list", arcDB[id])
-	}
+	templates.ExecuteTemplate(w, "spell_list", arcDB)
 	templates.ExecuteTemplate(w, "footer", nil)
 }
 
