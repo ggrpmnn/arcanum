@@ -1,5 +1,6 @@
 html {
-    background: #5b84ad;
+    color: #5F5F5F;
+    background: #4682B4;
 }
 
 body {
@@ -19,10 +20,18 @@ h1, h2, h3, h4, h5, h6 {
     /*-webkit-margin-after: 0;*/
 }
 
+p {
+    /*color: #4C4C4C;*/
+}
+
 p:first-child {
     margin-top: 0;
 }
 
 p:last-child {
     margin-bottom: 0;
+}
+
+a, a:hover {
+    color: #4C4C4C;
 }
