@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -56,6 +58,9 @@ func SpellDisplay(w http.ResponseWriter, r *http.Request) {
 	} else {
 		templates.ExecuteTemplate(w, "header", nil)
 		templates.ExecuteTemplate(w, "spell", s)
+		// convert newline chars to <br> for proper HTML display
+		d := template.HTML(strings.Replace(s.Description, "\n", "<br>", -1))
+		templates.ExecuteTemplate(w, "spell_desc", d)
 		templates.ExecuteTemplate(w, "footer", nil)
 	}
 }
