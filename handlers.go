@@ -11,13 +11,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// APIList is the handler function for /api/list
 func APIList(w http.ResponseWriter, r *http.Request) {
 	l := make([]SpellEntry, 0)
 	for i := 0; i < len(arcID); i++ {
-		n := arcDB[arcID[i]].Name
-		u := "http://" + r.Host + SPELL_API_PATH + strconv.Itoa(arcID[i])
-		t := arcDB[arcID[i]].Tags
-		s := SpellEntry{Name: n, URL: u, Tags: t}
+		s := SpellEntry{Name: arcDB[arcID[i]].Name, URL: "http://" + r.Host + SpellEndpoint + strconv.Itoa(arcID[i]), Tags: arcDB[arcID[i]].Tags}
 		l = append(l, s)
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -25,12 +23,13 @@ func APIList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(l)
 }
 
+// APISpell is the handler function for /api/spell
 func APISpell(w http.ResponseWriter, r *http.Request) {
 	idS := mux.Vars(r)["spellID"]
 	// router handles non-numeric IDs; no need to error check
 	idN, _ := strconv.Atoi(idS)
 	if s, p := arcDB[idN]; p == false {
-		NotFound(w, r)
+		notFound(w, r)
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
@@ -38,23 +37,23 @@ func APISpell(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "header", nil)
 	templates.ExecuteTemplate(w, "spell_list", arcDB)
 	templates.ExecuteTemplate(w, "footer", nil)
 }
 
-func NotFound(w http.ResponseWriter, r *http.Request) {
+func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	fmt.Fprintln(w, "The requested page does not exist - it has been lost to the Weave!")
 }
 
-func SpellDisplay(w http.ResponseWriter, r *http.Request) {
+func spellDisplay(w http.ResponseWriter, r *http.Request) {
 	idS := mux.Vars(r)["spellID"]
 	// router handles non-numeric IDs; no need to error check
 	idN, _ := strconv.Atoi(idS)
 	if s, p := arcDB[idN]; p == false {
-		NotFound(w, r)
+		notFound(w, r)
 	} else {
 		templates.ExecuteTemplate(w, "header", nil)
 		templates.ExecuteTemplate(w, "spell", s)

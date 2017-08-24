@@ -11,18 +11,20 @@ import (
 )
 
 const (
-	LIST_API_PATH  string = "/api/list/"
-	SPELL_API_PATH string = "/api/spell/"
+	// SpellListEndpoint is the route for the spell listing
+	SpellListEndpoint string = "/api/list/"
+	// SpellEndpoint is the route for an individual spell
+	SpellEndpoint string = "/api/spell/"
 )
 
-// a list of spell IDs, in ascending order
-var arcID []int
-
-// a list of spell structs, in random order
-var arcDB map[int]Spell
-
-// HTML templates for rendering pages
-var templates *template.Template
+var (
+	// arcID is a list of spell IDs, in ascending order
+	arcID []int
+	// arcDB is a list of spell structs (randomized order)
+	arcDB map[int]Spell
+	// HTML templates for rendering pages
+	templates *template.Template
+)
 
 // if the error provided is not nil, panic
 // for use in the init funtion only; don't want a runtime panic
@@ -61,11 +63,11 @@ func init() {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/", Index)
-	router.HandleFunc(LIST_API_PATH, APIList)
-	router.HandleFunc(SPELL_API_PATH+"{spellID:[0-9]+}", APISpell)
-	router.HandleFunc("/spell/{spellID:[0-9]+}", SpellDisplay)
-	router.NotFoundHandler = http.HandlerFunc(NotFound)
+	router.HandleFunc("/", index)
+	router.HandleFunc(SpellListEndpoint, APIList)
+	router.HandleFunc(SpellEndpoint+"{spellID:[0-9]+}", APISpell)
+	router.HandleFunc("/spell/{spellID:[0-9]+}", spellDisplay)
+	router.NotFoundHandler = http.HandlerFunc(notFound)
 
 	// for static files (CSS etc.)
 	router.Handle("/css/{file}", http.FileServer(http.Dir("")))
