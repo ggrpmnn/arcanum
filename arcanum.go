@@ -53,11 +53,11 @@ func init() {
 			arcDB[sl[i].ID] = sl[i]
 		}
 	}
-	log.Printf("> Spell data created.\n")
+	log.Printf("Spell data created.\n")
 
 	// Parse HTML templates
 	templates = template.Must(template.ParseGlob("html/*"))
-	log.Printf("> HTML templates parsed.\n")
+	log.Printf("HTML templates parsed.\n")
 }
 
 func main() {
@@ -72,6 +72,6 @@ func main() {
 	// for static files (CSS etc.)
 	router.Handle("/css/{file}", http.FileServer(http.Dir("")))
 
-	log.Printf("> Listening on port 8080.\n")
+	log.Printf("Listening on port 8080.\n")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
